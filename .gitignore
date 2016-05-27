@@ -1,0 +1,9 @@
+_Store
+/build
+/captures
+.idea
+*.iml
+*.bin
+*.lock
+.idea/
+local.properties
