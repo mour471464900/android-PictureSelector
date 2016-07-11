@@ -5,9 +5,6 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.Matrix;
-import android.graphics.Paint;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -508,7 +505,7 @@ public final class PhotoPickManger {
                                 final Bitmap bm = PictureUtil.getSmallBitmap(file.getAbsolutePath(), 720, 1200);
                                 try {
                                     FileOutputStream fos = new FileOutputStream(file);
-                                    bm.compress(Bitmap.CompressFormat.JPEG, 95, fos);
+                                    bm.compress(Bitmap.CompressFormat.JPEG, 80, fos);
                                 } catch (FileNotFoundException e) {
                                     e.printStackTrace();
                                 }
@@ -587,53 +584,53 @@ public final class PhotoPickManger {
         if (width > height) {
 
             Bitmap bit = bitmapFromFile(file, width, height);
-            bit = adjustPhotoRotation(bit, 1);
+//            bit = adjustPhotoRotation(bit, 1);
             try {
-                bit.compress(Bitmap.CompressFormat.PNG,100,new FileOutputStream(file));
+                bit.compress(Bitmap.CompressFormat.JPEG,80,new FileOutputStream(file));
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
         }
     }
 
-    /**
-     * 旋转图片
-     */
-    public Bitmap adjustPhotoRotation(Bitmap bm, int count) {
-        int orientationDegree = 90;
-        Matrix m = new Matrix();
-        for (int i = 0; i < count; i++) {
-            m.setRotate(orientationDegree, bm.getWidth(),
-                    bm.getHeight());
-            float targetX, targetY;
-            if (orientationDegree == 90) {
-                targetX = bm.getHeight();
-                targetY = 0;
-            } else {
-                targetX = bm.getHeight();
-                targetY = bm.getWidth();
-            }
-
-            final float[] values = new float[9];
-            m.getValues(values);
-
-            float x1 = values[Matrix.MTRANS_X];
-            float y1 = values[Matrix.MTRANS_Y];
-
-            m.postTranslate(targetX - x1, targetY - y1);
-        }
-
-        Bitmap bm1 = Bitmap.createBitmap(bm.getHeight(), bm.getWidth(),
-                Bitmap.Config.ARGB_8888);
-        Paint paint = new Paint();
-        Canvas canvas = new Canvas(bm1);
-        canvas.drawBitmap(bm, m, paint);
-
-        // ���ɵ�bitmap����
-        bm.recycle();
-
-        return bm1;
-    }
+//    /**
+//     * 旋转图片
+//     */
+//    public Bitmap adjustPhotoRotation(Bitmap bm, int count) {
+//        int orientationDegree = 90;
+//        Matrix m = new Matrix();
+//        for (int i = 0; i < count; i++) {
+//            m.setRotate(orientationDegree, bm.getWidth(),
+//                    bm.getHeight());
+//            float targetX, targetY;
+//            if (orientationDegree == 90) {
+//                targetX = bm.getHeight();
+//                targetY = 0;
+//            } else {
+//                targetX = bm.getHeight();
+//                targetY = bm.getWidth();
+//            }
+//
+//            final float[] values = new float[9];
+//            m.getValues(values);
+//
+//            float x1 = values[Matrix.MTRANS_X];
+//            float y1 = values[Matrix.MTRANS_Y];
+//
+//            m.postTranslate(targetX - x1, targetY - y1);
+//        }
+//
+//        Bitmap bm1 = Bitmap.createBitmap(bm.getHeight(), bm.getWidth(),
+//                Bitmap.Config.ARGB_8888);
+//        Paint paint = new Paint();
+//        Canvas canvas = new Canvas(bm1);
+//        canvas.drawBitmap(bm, m, paint);
+//
+//        // ���ɵ�bitmap����
+//        bm.recycle();
+//
+//        return bm1;
+//    }
 
     private List<File> createFiles(File file) {
         List<File> list = new ArrayList<>();
@@ -694,7 +691,7 @@ public final class PhotoPickManger {
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                 }
-                photo.compress(Bitmap.CompressFormat.JPEG, 100, fOut);
+                photo.compress(Bitmap.CompressFormat.JPEG, 80, fOut);
             }
             finish(tempFile);
 

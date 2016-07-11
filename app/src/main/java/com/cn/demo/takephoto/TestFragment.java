@@ -53,7 +53,7 @@ public class TestFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 pickManger.clearCache();
-                pickManger.setCut(true);
+//                pickManger.setCut(true);
                 new AlertDialog.Builder(v.getContext()).setTitle("单选框").setIcon(
                         android.R.drawable.ic_dialog_info).setSingleChoiceItems(
                         new String[]{"系统相机", "系统相册", "微信相册"}, -1,
