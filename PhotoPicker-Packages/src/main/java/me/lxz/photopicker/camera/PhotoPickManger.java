@@ -5,13 +5,15 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Matrix;
+import android.graphics.Paint;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.provider.MediaStore;
 import android.util.Log;
-import android.widget.Toast;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -67,7 +69,7 @@ public final class PhotoPickManger {
     /**
      * 测试用
      */
-    private boolean isDebugToast = true;
+    private boolean isDebugToast = false;
 
     /**
      * 用于区别其他图片选择器
@@ -198,7 +200,7 @@ public final class PhotoPickManger {
     public void flushBundle() {
         if (bundle != null) {
             if (isDebugToast) {
-                Toast.makeText(activity, "bundle is refresh", Toast.LENGTH_LONG).show();
+//                Toast.makeText(activity, "bundle is refresh", Toast.LENGTH_LONG).show();
             }
             selectsPhotos = (ArrayList<File>) bundle.getSerializable(SAVE_SELECTED_PHOTOS + "_" + name);
             if (selectsPhotos == null) {
@@ -356,6 +358,7 @@ public final class PhotoPickManger {
         try {
             switch (requestCode) {
                 case PHOTO_REQUEST_TAKEPHOTO:
+
                     if (isCut) {
                         startPhotoZoom(Uri.fromFile(tempFile), defaultCutSize); // 裁剪
                     } else {
@@ -505,7 +508,7 @@ public final class PhotoPickManger {
                                 final Bitmap bm = PictureUtil.getSmallBitmap(file.getAbsolutePath(), 720, 1200);
                                 try {
                                     FileOutputStream fos = new FileOutputStream(file);
-                                    bm.compress(Bitmap.CompressFormat.JPEG, 80, fos);
+                                    bm.compress(Bitmap.CompressFormat.JPEG, 95, fos);
                                 } catch (FileNotFoundException e) {
                                     e.printStackTrace();
                                 }
@@ -542,6 +545,7 @@ public final class PhotoPickManger {
         new Thread(new Runnable() {
             @Override
             public void run() {
+
                 for (Iterator<File> it = files.iterator(); it.hasNext(); ) {
                     File file = it.next();
                     if (!file.exists() || file.length() == 0) {
@@ -570,7 +574,7 @@ public final class PhotoPickManger {
     /**
      * 三星手机将横向图片转换为竖向
      */
-    public void changFile(String file) {
+    public void changFile(final String file) {
         BitmapFactory.Options options = new BitmapFactory.Options();
 
         /**
@@ -581,56 +585,62 @@ public final class PhotoPickManger {
         BitmapFactory.decodeFile(file, options);
         int width = options.outWidth;
         int height = options.outHeight;
+        //将分辨率尺寸固定在800 防止OOM
+        float k=800.0f/width;
+        Bitmap bit=BitmapCreate.bitmapFromFile(file,800,(int)(height*k));
         if (width > height) {
-
-            Bitmap bit = bitmapFromFile(file, width, height);
-//            bit = adjustPhotoRotation(bit, 1);
             try {
-                bit.compress(Bitmap.CompressFormat.JPEG,80,new FileOutputStream(file));
-            } catch (FileNotFoundException e) {
+                bit = adjustPhotoRotation(bit, 1);
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
+        try {
+            bit.compress(Bitmap.CompressFormat.JPEG, 80, new FileOutputStream(file));
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
-//    /**
-//     * 旋转图片
-//     */
-//    public Bitmap adjustPhotoRotation(Bitmap bm, int count) {
-//        int orientationDegree = 90;
-//        Matrix m = new Matrix();
-//        for (int i = 0; i < count; i++) {
-//            m.setRotate(orientationDegree, bm.getWidth(),
-//                    bm.getHeight());
-//            float targetX, targetY;
-//            if (orientationDegree == 90) {
-//                targetX = bm.getHeight();
-//                targetY = 0;
-//            } else {
-//                targetX = bm.getHeight();
-//                targetY = bm.getWidth();
-//            }
-//
-//            final float[] values = new float[9];
-//            m.getValues(values);
-//
-//            float x1 = values[Matrix.MTRANS_X];
-//            float y1 = values[Matrix.MTRANS_Y];
-//
-//            m.postTranslate(targetX - x1, targetY - y1);
-//        }
-//
-//        Bitmap bm1 = Bitmap.createBitmap(bm.getHeight(), bm.getWidth(),
-//                Bitmap.Config.ARGB_8888);
-//        Paint paint = new Paint();
-//        Canvas canvas = new Canvas(bm1);
-//        canvas.drawBitmap(bm, m, paint);
-//
-//        // ���ɵ�bitmap����
-//        bm.recycle();
-//
-//        return bm1;
-//    }
+     /**
+     * 旋转图片
+     */
+    public Bitmap adjustPhotoRotation(Bitmap bm, int count) {
+        int orientationDegree = 90;
+        Matrix m = new Matrix();
+        for (int i = 0; i < count; i++) {
+            m.setRotate(orientationDegree, bm.getWidth(),
+                    bm.getHeight());
+            float targetX, targetY;
+            if (orientationDegree == 90) {
+                targetX = bm.getHeight();
+                targetY = 0;
+            } else {
+                targetX = bm.getHeight();
+                targetY = bm.getWidth();
+            }
+
+            final float[] values = new float[9];
+            m.getValues(values);
+
+            float x1 = values[Matrix.MTRANS_X];
+            float y1 = values[Matrix.MTRANS_Y];
+
+            m.postTranslate(targetX - x1, targetY - y1);
+        }
+
+        Bitmap bm1 = Bitmap.createBitmap(bm.getHeight(), bm.getWidth(),
+                Bitmap.Config.RGB_565);
+        Paint paint = new Paint();
+        Canvas canvas = new Canvas(bm1);
+        canvas.drawBitmap(bm, m, paint);
+
+        // ���ɵ�bitmap����
+        bm.recycle();
+
+        return bm1;
+    }
 
     private List<File> createFiles(File file) {
         List<File> list = new ArrayList<>();
@@ -691,7 +701,7 @@ public final class PhotoPickManger {
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                 }
-                photo.compress(Bitmap.CompressFormat.JPEG, 80, fOut);
+                photo.compress(Bitmap.CompressFormat.JPEG, 100, fOut);
             }
             finish(tempFile);
 
